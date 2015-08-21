@@ -39,6 +39,7 @@
   "dependencies": {
     "babel-runtime": "^5.8.20",
     "debug": "^2.2.0",
+    "inputmask-core": "^2.1.0",
     "react": "^0.13.3"
   },
   "devDependencies": {
