@@ -174,6 +174,7 @@ export default class MaskedInput extends React.Component {
                 this.props.onChange(e)
             }
         }
+        this.props.onKeyDown || this.props.onKeyDown(e)
     }
 
     _onKeyPress(e) {
