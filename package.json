@@ -1,6 +1,6 @@
 {
   "name": "react-maskedinput-plus",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "React masked input",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
