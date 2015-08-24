@@ -18,12 +18,21 @@ function isRedo(e) {
     return (e.ctrlKey || e.metaKey) && e.keyCode === (e.shiftKey ? KEYCODE_Z : KEYCODE_Y)
 }
 
+function pass(p) {
+    return p
+}
+
 export default class MaskedInput extends React.Component {
     static propTypes = {
         formatCharacters: object,
         pattern: string.isRequired,
         placeholderChar: string,
         nonDataMask: string
+    }
+
+    static defaultProps = {
+        value: '',
+        format: pass
     }
 
     constructor(props, context) {
@@ -38,13 +47,6 @@ export default class MaskedInput extends React.Component {
         this._format = ::this._format
 
         this._nonDataRegExp = new RegExp(props.nonDataMask || '[ ]+', 'g')
-    }
-
-    getDefaultProps() {
-        return {
-            value: '',
-            format: p => p
-        }
     }
 
     componentWillMount() {
