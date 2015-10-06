@@ -4,7 +4,8 @@ import React from 'react'
 
 const {
     object,
-    string
+    string,
+    func
 } = React.PropTypes
 
 const KEYCODE_Z = 90
@@ -22,17 +23,26 @@ function pass(p) {
     return p
 }
 
+
 export default class MaskedInput extends React.Component {
     static propTypes = {
         formatCharacters: object,
         pattern: string.isRequired,
         placeholderChar: string,
-        nonDataMask: string
+        nonDataMask: string,
+        validate: func,
+        onKeyPress: func,
+        onChange: func,
+        onChangeValue: func
     }
 
     static defaultProps = {
         value: '',
-        format: pass
+        format: pass,
+        placeholderChar: '_',
+        onChange: pass,
+        onKeyDown: pass,
+        onChangeValue: pass
     }
 
     constructor(props, context) {
@@ -50,17 +60,19 @@ export default class MaskedInput extends React.Component {
     }
 
     componentWillMount() {
-        const options = {
-            pattern: this.props.pattern,
-            value: this._format(this._cleanValue(this.props.value)),
-            formatCharacters: this.props.formatCharacters
-        }
+        const {
+            pattern,
+            formatCharacters,
+            placeholderChar,
+            value
+        } = this.props
 
-        if (this.props.placeholderChar) {
-            options.placeholderChar = this.props.placeholderChar
-        }
-
-        this.mask = new InputMask(options)
+        this.mask = new InputMask({
+            pattern,
+            formatCharacters,
+            placeholderChar,
+            value: this._format(this._cleanValue(value))
+        })
     }
 
     componentWillReceiveProps(nextProps) {
@@ -122,14 +134,16 @@ export default class MaskedInput extends React.Component {
     }
 
     _onChange(e) {
-        const maskValue = this.mask.getValue()
+        const {onChange} = this.props
+        const {mask} = this
+        const maskValue = mask.getValue()
         if (e.target.value !== maskValue) {
             // Cut or delete operations will have shortened the value
             if (e.target.value.length < maskValue.length) {
                 const sizeDiff = maskValue.length - e.target.value.length
                 this._updateMaskSelection()
-                this.mask.selection.end = this.mask.selection.start + sizeDiff
-                this.mask.backspace()
+                mask.selection.end = mask.selection.start + sizeDiff
+                mask.backspace()
             }
             const value = this._getDisplayValue()
             e.target.value = value
@@ -138,26 +152,26 @@ export default class MaskedInput extends React.Component {
             }
         }
 
-        if (this.props.onChange) {
-            this.props.onChange(e)
-        }
+        onChange(e)
     }
 
     _onKeyDown(e) {
+        const {onKeyDown, onChange} = this.props
+        const {mask} = this
         if (isUndo(e)) {
             e.preventDefault()
-            if (this.mask.undo()) {
+            if (mask.undo()) {
                 e.target.value = this._getDisplayValue()
                 this._updateInputSelection()
-                this.props.onChange(e)
+                onChange(e)
             }
             return
         } else if (isRedo(e)) {
             e.preventDefault()
-            if (this.mask.redo()) {
+            if (mask.redo()) {
                 e.target.value = this._getDisplayValue()
                 this._updateInputSelection()
-                this.props.onChange(e)
+                onChange(e)
             }
             return
         }
@@ -165,23 +179,21 @@ export default class MaskedInput extends React.Component {
         if (e.key === 'Backspace') {
             e.preventDefault()
             this._updateMaskSelection()
-            if (this.mask.backspace()) {
+            if (mask.backspace()) {
                 const value = this._getDisplayValue()
                 e.target.value = value
                 if (value) {
                     this._updateInputSelection()
                 }
-                this.props.onChange(e)
+                onChange(e)
             }
         }
-        if (this.props.onKeyDown) {
-            this.props.onKeyDown(e)
-        }
+        onKeyDown(e)
     }
 
     _onKeyPress(e) {
-        // console.log('onKeyPress', JSON.stringify(getSelection(this._getDOMNode())), e.key, e.target.value)
-
+        const {onChange, onChangeValue} = this.props
+        const {mask} = this
         // Ignore modified key presses
         if (e.metaKey || e.altKey || e.ctrlKey) {
             return
@@ -189,28 +201,33 @@ export default class MaskedInput extends React.Component {
 
         e.preventDefault()
         this._updateMaskSelection()
-        if (this.mask.input(e.key)) {
-            e.target.value = this.mask.getValue()
+        if (mask.input(e.key)) {
+            e.target.value = mask.getValue()
             this._updateInputSelection()
-            this.props.onChange(e)
+            onChange(e)
+            onChangeValue(this._cleanValue(e.target.value))
         }
     }
 
     _onPaste(e) {
+        const {validate, onChange} = this.props
+        const {mask} = this
         e.preventDefault()
         this._updateMaskSelection()
         // getData value needed for IE also works in FF & Chrome
         const value = this._cleanValue(e.clipboardData.getData('Text'))
-        if (this.props.validate(value) && this.mask.paste(this._format(value))) {
-            e.target.value = this.mask.getValue()
+        if (validate(value) && mask.paste(this._format(value))) {
+            e.target.value = mask.getValue()
             // Timeout needed for IE
             setTimeout(this._updateInputSelection, 0)
-            this.props.onChange(e)
+            onChange(e)
+            onChangeValue(this._cleanValue(e.target.value))
         }
     }
 
     _getDisplayValue() {
-        const value = this.mask.getValue()
-        return value === this.mask.emptyValue ? '' : value
+        const {mask} = this
+        const value = mask.getValue()
+        return value === mask.emptyValue ? '' : value
     }
 }
