@@ -211,7 +211,7 @@ export default class MaskedInput extends React.Component {
     }
 
     _onPaste(e) {
-        const {validate, onChange} = this.props
+        const {validate, onChange, onChangeValue} = this.props
         const {mask} = this
         e.preventDefault()
         this._updateMaskSelection()
