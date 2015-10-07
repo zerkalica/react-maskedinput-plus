@@ -40,6 +40,7 @@ export default class MaskedInput extends React.Component {
         value: '',
         format: pass,
         placeholderChar: '_',
+        validate: v => true,
         onChange: pass,
         onKeyDown: pass,
         onChangeValue: pass
