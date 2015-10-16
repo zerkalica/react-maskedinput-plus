@@ -1,6 +1,7 @@
 import {getSelection, setSelection} from 'react/lib/ReactInputSelection'
 import InputMask from 'inputmask-core'
 import React from 'react'
+import ReactDOM from 'react-dom'
 
 const {
     object,
@@ -103,7 +104,7 @@ export default class MaskedInput extends React.Component {
     }
 
     _getDOMNode() {
-        return React.findDOMNode(this)
+        return ReactDOM.findDOMNode(this)
     }
 
     _cleanValue(value) {
