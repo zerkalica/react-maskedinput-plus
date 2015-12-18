@@ -135,8 +135,13 @@ export default class MaskedInput extends React.Component {
         this.mask.selection = getSelection(this._getDOMNode())
     }
 
+    __onChange(e) {
+        const {onChange, onChangeValue} = this.props
+        onChange(e)
+        onChangeValue(this._cleanValue(e.target.value))
+    }
+
     _onChange(e) {
-        const {onChange} = this.props
         const {mask} = this
         const maskValue = mask.getValue()
         if (e.target.value !== maskValue) {
@@ -154,18 +159,18 @@ export default class MaskedInput extends React.Component {
             }
         }
 
-        onChange(e)
+        this.__onChange(e)
     }
 
     _onKeyDown(e) {
-        const {onKeyDown, onChange} = this.props
+        const {onKeyDown} = this.props
         const {mask} = this
         if (isUndo(e)) {
             e.preventDefault()
             if (mask.undo()) {
                 e.target.value = this._getDisplayValue()
                 this._updateInputSelection()
-                onChange(e)
+                this.__onChange(e)
             }
             return
         } else if (isRedo(e)) {
@@ -173,7 +178,7 @@ export default class MaskedInput extends React.Component {
             if (mask.redo()) {
                 e.target.value = this._getDisplayValue()
                 this._updateInputSelection()
-                onChange(e)
+                this.__onChange(e)
             }
             return
         }
@@ -187,14 +192,13 @@ export default class MaskedInput extends React.Component {
                 if (value) {
                     this._updateInputSelection()
                 }
-                onChange(e)
+                this.__onChange(e)
             }
         }
         onKeyDown(e)
     }
 
     _onKeyPress(e) {
-        const {onChange, onChangeValue} = this.props
         const {mask} = this
         // Ignore modified key presses
         if (e.metaKey || e.altKey || e.ctrlKey) {
@@ -206,13 +210,12 @@ export default class MaskedInput extends React.Component {
         if (mask.input(e.key)) {
             e.target.value = mask.getValue()
             this._updateInputSelection()
-            onChange(e)
-            onChangeValue(this._cleanValue(e.target.value))
+            this.__onChange(e)
         }
     }
 
     _onPaste(e) {
-        const {validate, onChange, onChangeValue} = this.props
+        const {validate} = this.props
         const {mask} = this
         e.preventDefault()
         this._updateMaskSelection()
@@ -222,8 +225,7 @@ export default class MaskedInput extends React.Component {
             e.target.value = mask.getValue()
             // Timeout needed for IE
             setTimeout(this._updateInputSelection, 0)
-            onChange(e)
-            onChangeValue(this._cleanValue(e.target.value))
+            this.__onChange(e)
         }
     }
 
